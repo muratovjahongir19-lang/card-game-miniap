@@ -1,4 +1,10 @@
 const express = require("express");
+const {
+joinGame,
+dealCards,
+bet,
+getWinner
+}=require("./game");
 
 const {
 checkPlayer
@@ -89,6 +95,67 @@ rooms[room].push(player);
 
 
 socket.join(room);
+
+  socket.on(
+"joinGame",
+(room)=>{
+
+
+let game=
+joinGame(room,player);
+
+
+socket.join(room);
+
+  socket.on(
+"startGame",
+(room)=>{
+
+
+let game=
+dealCards(room);
+
+
+io.to(room).emit(
+"gameUpdate",
+game
+);
+
+
+});
+
+socket.on(
+"bet",
+(data)=>{
+
+
+let game=
+bet(
+data.room,
+socket.id,
+data.amount
+);
+
+
+
+io.to(data.room)
+.emit(
+"gameUpdate",
+game
+);
+
+
+
+});
+
+
+io.to(room).emit(
+"gameUpdate",
+game
+);
+
+
+});
 
 
 
