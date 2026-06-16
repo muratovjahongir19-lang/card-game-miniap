@@ -1,6 +1,7 @@
 import React from "react";
 import "./game.css";
-
+import Deck from "../components/Deck";
+import Timer from "../components/Timer";
 
 export default function GameTable(){
 
@@ -116,6 +117,9 @@ key={index}
 </div>
 
 
+  <Timer/>
+
+<Deck/>
 
 <div className="actions">
 
