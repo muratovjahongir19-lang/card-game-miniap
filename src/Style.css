@@ -190,4 +190,23 @@ text-align:center;
 
 margin:30px;
 
+.tournament{
+
+background:#202040;
+
+padding:20px;
+
+border-radius:20px;
+
+margin-top:20px;
+
+}
+
+
+.card button{
+
+width:90%;
+
+}
+
 }
