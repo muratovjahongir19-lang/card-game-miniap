@@ -1,5 +1,6 @@
 import GameTable from "./pages/GameTable";
-
+import Shop from "./pages/Shop";
+import Wheel from "./components/Wheel";
 
 function App(){
 
@@ -154,6 +155,29 @@ Winrate: 68%
 ⚙️
 </button>
 
+{
+page==="shop" &&
+<Shop/>
+}
+
+
+{
+page==="wheel" &&
+<Wheel/>
+}
+
+<button onClick={()=>setPage("shop")}>
+
+🛒
+
+</button>
+
+
+<button onClick={()=>setPage("wheel")}>
+
+🎡
+
+</button>
 
 </nav>
 
