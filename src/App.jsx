@@ -244,6 +244,16 @@ page==="admin" &&
 <Admin/>
 }
 
+
+{
+page==="home" &&
+
+<MainMenu 
+setPage={setPage}
+/>
+
+}
+
 <button onClick={()=>setPage("history")}>
 📜
 </button>
@@ -259,6 +269,9 @@ page==="admin" &&
 </button>
   
 </nav>
+
+
+<Theme/>
 
 
 
