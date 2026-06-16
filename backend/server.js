@@ -1,6 +1,11 @@
 const express = require("express");
 
 const {
+createRoom,
+joinRoom
+}=require("./rooms");
+
+const {
 createTurn,
 nextTurn,
 tick
@@ -330,4 +335,30 @@ msg
 );
 
 
+socket.on(
+"createPrivate",
+()=>{
+
+
+let id=
+Math.floor(
+Math.random()*999999
+);
+
+
+
+createRoom(
+id,
+player
+);
+
+
+
+socket.emit(
+"roomCreated",
+id
+);
+
+
 });
+
