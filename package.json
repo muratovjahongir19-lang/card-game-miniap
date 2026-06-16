@@ -1,0 +1,17 @@
+{
+  "name": "card-game-miniapp",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "@twa-dev/sdk": "latest"
+  },
+  "devDependencies": {
+    "tailwindcss": "latest"
+  }
+}
