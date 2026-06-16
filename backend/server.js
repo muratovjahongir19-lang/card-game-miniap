@@ -381,6 +381,62 @@ socket.emit(
 id
 );
 
+app.post(
+"/login",
+async(req,res)=>{
+
+
+const {
+
+telegramId,
+
+name,
+
+photo
+
+}=req.body;
+
+
+
+let user=
+await User.findOne({
+telegramId
+});
+
+
+
+if(!user){
+
+
+user=
+await User.create({
+
+telegramId,
+
+name,
+
+photo
+
+});
+
+
+}
+
+
+
+let token=
+createToken(user);
+
+
+
+res.json({
+
+token,
+
+user
+
+});
+
 
 });
 
