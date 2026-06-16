@@ -108,6 +108,20 @@ socket.join(room);
 (room)=>{
 
 
+socket.on(
+"emotion",
+(e)=>{
+
+
+io.emit(
+"emotion",
+e
+);
+
+
+});
+
+
 let game=
 joinGame(room,player);
 
