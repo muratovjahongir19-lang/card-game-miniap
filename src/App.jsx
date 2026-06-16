@@ -65,12 +65,15 @@ LVL 23
 
 
 
-<button className="play">
-
+<button 
+className="play"
+onClick={()=>setPage("game")}
+>
+  
 БЫСТРАЯ ИГРА
 
 </button>
-
+  
 
 
 <div className="buttons">
@@ -159,7 +162,12 @@ Winrate: 68%
 </div>
 
 )
-
+  
+{
+page==="game" &&
+<GameTable/>
+}
+  
 }
 
 
