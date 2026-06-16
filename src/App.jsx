@@ -4,6 +4,9 @@ import Wheel from "./components/Wheel";
 import Friends from "./pages/Friends";
 import Tournament from "./pages/Tournament";
 import League from "./pages/League";
+import History from "./pages/History";
+import Achievements from "./pages/Achievements";
+import Admin from "./pages/Admin";
 
 function App(){
 
@@ -219,6 +222,39 @@ onClick={()=>setPage("league")}
 >
 🏅
 </button>  
+
+
+
+  {
+page==="history" &&
+<History/>
+}
+
+
+{
+page==="achievements" &&
+<Achievements/>
+}
+
+
+{
+page==="admin" &&
+<Admin/>
+}
+
+<button onClick={()=>setPage("history")}>
+📜
+</button>
+
+
+<button onClick={()=>setPage("achievements")}>
+🏅
+</button>
+
+
+<button onClick={()=>setPage("admin")}>
+⚙️
+</button>
   
 </nav>
 
