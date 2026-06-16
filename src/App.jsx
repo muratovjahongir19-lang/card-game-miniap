@@ -1,4 +1,4 @@
-import {useState} from "react";
+import GameTable from "./pages/GameTable";
 
 
 function App(){
