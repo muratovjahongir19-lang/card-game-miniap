@@ -7,6 +7,8 @@ import League from "./pages/League";
 import History from "./pages/History";
 import Achievements from "./pages/Achievements";
 import Admin from "./pages/Admin";
+import MainMenu from "./components/MainMenu";
+import Theme from "./components/Theme";
 
 function App(){
 
