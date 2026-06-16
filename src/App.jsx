@@ -182,6 +182,44 @@ page==="wheel" &&
 
 </button>
 
+{
+page==="friends" &&
+<Friends/>
+}
+
+
+{
+page==="tournament" &&
+<Tournament/>
+}
+
+
+
+{
+page==="league" &&
+<League/>
+}
+
+<button 
+onClick={()=>setPage("friends")}
+>
+👥
+</button>
+
+
+<button 
+onClick={()=>setPage("tournament")}
+>
+🏆
+</button>
+
+
+<button 
+onClick={()=>setPage("league")}
+>
+🏅
+</button>  
+  
 </nav>
 
 
