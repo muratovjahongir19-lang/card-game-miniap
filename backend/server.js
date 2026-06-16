@@ -296,11 +296,23 @@ console.log(
 socket.on(
 "profile",
 ()=>{
+  
 
 
 socket.emit(
 "profileData",
 getUser(socket.id)
+);
+
+
+socket.on(
+"tableChat",
+(msg)=>{
+
+
+io.emit(
+"tableChat",
+msg
 );
 
 
