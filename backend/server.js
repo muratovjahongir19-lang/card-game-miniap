@@ -1,4 +1,9 @@
 const express = require("express");
+
+const {
+createUser,
+getUser
+}=require("./database");
 const cors = require("cors");
 const http = require("http");
 
@@ -26,7 +31,7 @@ let players=[];
 
 let rooms={};
 
-
+let user=createUser(player);
 
 io.on("connection",(socket)=>{
 
@@ -158,5 +163,20 @@ server.listen(3000,()=>{
 console.log(
 "Server started 3000"
 );
+
+});
+
+
+
+socket.on(
+"profile",
+()=>{
+
+
+socket.emit(
+"profileData",
+getUser(socket.id)
+);
+
 
 });
