@@ -1,6 +1,7 @@
 import React from "react";
 import "./game.css";
-
+import Deck from "../components/Deck";
+import Timer from "../components/Timer";
 
 export default function GameTable(){
 
@@ -34,7 +35,11 @@ avatar:"https://i.pravatar.cc/80?4"
 
 
 return(
+  
+<Timer/>
 
+<Deck/>
+  
 <div className="table-page">
 
 
