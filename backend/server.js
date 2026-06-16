@@ -1,5 +1,27 @@
 const express = require("express");
 
+const mongoose=require("mongoose");
+
+require("dotenv").config();
+
+
+const User=require("./models/User");
+
+const {
+createToken
+}=require("./auth");
+
+
+
+mongoose.connect(
+process.env.MONGO_URL
+)
+.then(()=>{
+
+console.log("Database connected");
+
+});
+
 const {
 createRoom,
 joinRoom
