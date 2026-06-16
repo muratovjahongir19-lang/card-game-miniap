@@ -1,6 +1,9 @@
 import GameTable from "./pages/GameTable";
 import Shop from "./pages/Shop";
 import Wheel from "./components/Wheel";
+import Friends from "./pages/Friends";
+import Tournament from "./pages/Tournament";
+import League from "./pages/League";
 
 function App(){
 
