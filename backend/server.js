@@ -1,4 +1,11 @@
 const express = require("express");
+
+const {
+createTurn,
+nextTurn,
+tick
+}=require("./turn");
+
 const {
 joinGame,
 dealCards,
@@ -110,6 +117,48 @@ socket.join(room);
   socket.on(
 "startGame",
 (room)=>{
+
+socket.on(
+"startGame",
+(room)=>{
+
+
+let game=
+dealCards(room);
+
+
+createTurn(room);
+
+
+io.to(room)
+.emit(
+"gameUpdate",
+game
+);
+
+
+});
+
+  socket.on(
+"move",
+(data)=>{
+
+
+let turn=
+nextTurn(
+data.room,
+data.players
+);
+
+
+io.to(data.room)
+.emit(
+"turn",
+turn
+);
+
+
+});
 
 
 let game=
