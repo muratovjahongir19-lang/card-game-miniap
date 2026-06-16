@@ -1,6 +1,10 @@
 const express = require("express");
 
 const {
+checkPlayer
+}=require("./anticheat");
+
+const {
 createUser,
 getUser
 }=require("./database");
@@ -37,7 +41,12 @@ io.on("connection",(socket)=>{
 
 
 console.log("Игрок подключился");
+  
+if(!checkPlayer(player)){
 
+socket.disconnect();
+
+}
 
 
 let player={
