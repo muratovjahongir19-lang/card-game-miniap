@@ -1,450 +1,166 @@
-const express = require("express");
-
-const battlePassRoutes =
-require("./routes/battlepass");
-
-app.use(
-"/battlepass",
-battlePassRoutes
-);
-
-const mongoose=require("mongoose");
-
 require("dotenv").config();
 
-
-const User=require("./models/User");
-
-const {
-createToken
-}=require("./auth");
-
-
-
-mongoose.connect(
-process.env.MONGO_URL
-)
-.then(()=>{
-
-console.log("Database connected");
-
-});
-
-const {
-createRoom,
-joinRoom
-}=require("./rooms");
-
-const {
-createTurn,
-nextTurn,
-tick
-}=require("./turn");
-
-const {
-joinGame,
-dealCards,
-bet,
-getWinner
-}=require("./game");
-
-const {
-checkPlayer
-}=require("./anticheat");
-
-const {
-createUser,
-getUser
-}=require("./database");
+const express = require("express");
 const cors = require("cors");
 const http = require("http");
+const { Server } = require("socket.io");
 
-const {Server}=require("socket.io");
+const {
+    createUser,
+    getUser
+} = require("./database");
 
+const {
+    joinGame,
+    dealCards,
+    bet,
+    getWinner
+} = require("./game");
 
-const app=express();
+const app = express();
 
 app.use(cors());
+app.use(express.json());
 
+const server = http.createServer(app);
 
-const server=http.createServer(app);
-
-
-const io=new Server(server,{
-cors:{
-origin:"*"
-}
+const io = new Server(server,{
+    cors:{
+        origin:"*"
+    }
 });
 
-
-
-let players=[];
-
-
-let rooms={};
-
-let user=createUser(player);
+const players = [];
 
 io.on("connection",(socket)=>{
 
+    console.log("Connected:",socket.id);
 
-console.log("Игрок подключился");
-  
-if(!checkPlayer(player)){
+    const player = {
 
-socket.disconnect();
+        id: socket.id,
 
-}
+        name: "Игрок_" + socket.id.slice(0,4),
 
+        money: 25000
 
-let player={
+    };
 
-id:socket.id,
+    createUser(player);
 
-name:"Игрок_"+socket.id.slice(0,4),
+    players.push(player);
 
-money:25000
+    io.emit(
+        "online",
+        players.length
+    );
 
-};
+    socket.on("profile",()=>{
 
+        socket.emit(
+            "profileData",
+            getUser(socket.id)
+        );
 
-players.push(player);
+    });
 
+    socket.on("joinGame",(room)=>{
 
+        const game =
+            joinGame(room,player);
 
+        socket.join(room);
 
-io.emit(
-"online",
-players.length
-);
+        io.to(room).emit(
+            "gameUpdate",
+            game
+        );
 
+    });
 
+    socket.on("startGame",(room)=>{
 
+        const game =
+            dealCards(room);
 
+        io.to(room).emit(
+            "gameUpdate",
+            game
+        );
 
-socket.on(
-"joinRoom",
-(room)=>{
+    });
 
+    socket.on("bet",(data)=>{
 
-if(!rooms[room])
-rooms[room]=[];
+        const game =
+            bet(
+                data.room,
+                socket.id,
+                data.amount
+            );
 
+        io.to(data.room).emit(
+            "gameUpdate",
+            game
+        );
 
+    });
 
-rooms[room].push(player);
+    socket.on("message",(text)=>{
 
+        io.emit(
+            "chat",
+            {
+                name: player.name,
+                text
+            }
+        );
 
+    });
 
-socket.join(room);
+    socket.on("disconnect",()=>{
 
-  socket.on(
-"joinGame",
-(room)=>{
+        const index =
+            players.findIndex(
+                p=>p.id===socket.id
+            );
 
+        if(index !== -1){
 
-socket.on(
-"emotion",
-(e)=>{
+            players.splice(index,1);
 
+        }
 
-io.emit(
-"emotion",
-e
-);
+        io.emit(
+            "online",
+            players.length
+        );
 
+        console.log(
+            "Disconnected:",
+            socket.id
+        );
 
-});
-
-
-let game=
-joinGame(room,player);
-
-
-socket.join(room);
-
-  socket.on(
-"startGame",
-(room)=>{
-
-socket.on(
-"startGame",
-(room)=>{
-
-
-let game=
-dealCards(room);
-
-
-createTurn(room);
-
-
-io.to(room)
-.emit(
-"gameUpdate",
-game
-);
-
-
-});
-
-  socket.on(
-"move",
-(data)=>{
-
-
-let turn=
-nextTurn(
-data.room,
-data.players
-);
-
-
-io.to(data.room)
-.emit(
-"turn",
-turn
-);
-
+    });
 
 });
-
-
-let game=
-dealCards(room);
-
-
-io.to(room).emit(
-"gameUpdate",
-game
-);
-
-
-});
-
-socket.on(
-"bet",
-(data)=>{
-
-
-let game=
-bet(
-data.room,
-socket.id,
-data.amount
-);
-
-
-
-io.to(data.room)
-.emit(
-"gameUpdate",
-game
-);
-
-
-
-});
-
-
-io.to(room).emit(
-"gameUpdate",
-game
-);
-
-
-});
-
-
-
-io.to(room).emit(
-"players",
-rooms[room]
-);
-
-
-
-});
-
-
-
-
-
-
-socket.on(
-"message",
-(data)=>{
-
-
-io.emit(
-"chat",
-{
-
-name:player.name,
-
-text:data
-
-}
-
-);
-
-
-});
-
-
-
-
-
-
-socket.on(
-"disconnect",
-()=>{
-
-
-players=
-players.filter(
-(p)=>p.id!==socket.id
-);
-
-
-io.emit(
-"online",
-players.length
-);
-
-
-
-});
-
-
-});
-
-
-
 
 app.get("/",(req,res)=>{
 
-res.send(
-"Card Game Server Online"
-);
+    res.send(
+        "Card Game Server Online"
+    );
 
 });
 
+const PORT =
+    process.env.PORT || 3000;
 
+server.listen(PORT,()=>{
 
-server.listen(3000,()=>{
-
-console.log(
-"Server started 3000"
-);
-
-});
-
-
-
-socket.on(
-"profile",
-()=>{
-  
-
-
-socket.emit(
-"profileData",
-getUser(socket.id)
-);
-
-
-socket.on(
-"tableChat",
-(msg)=>{
-
-
-io.emit(
-"tableChat",
-msg
-);
-
-
-socket.on(
-"createPrivate",
-()=>{
-
-
-let id=
-Math.floor(
-Math.random()*999999
-);
-
-
-
-createRoom(
-id,
-player
-);
-
-
-
-socket.emit(
-"roomCreated",
-id
-);
-
-app.post(
-"/login",
-async(req,res)=>{
-
-
-const {
-
-telegramId,
-
-name,
-
-photo
-
-}=req.body;
-
-
-
-let user=
-await User.findOne({
-telegramId
-});
-
-
-
-if(!user){
-
-
-user=
-await User.create({
-
-telegramId,
-
-name,
-
-photo
+    console.log(
+        "Server started on port",
+        PORT
+    );
 
 });
-
-
-}
-
-
-
-let token=
-createToken(user);
-
-
-
-res.json({
-
-token,
-
-user
-
-});
-
-
-});
-
