@@ -1,3 +1,4 @@
+import { useState } from "react";
 import GameTable from "./pages/GameTable";
 import Shop from "./pages/Shop";
 import Wheel from "./components/Wheel";
@@ -13,14 +14,11 @@ import BattlePass from "./pages/BattlePass";
 
 function App(){
 
-
 const [page,setPage]=useState("home");
-
 
 return(
 
 <div className="app">
-
 
 <header>
 
@@ -35,14 +33,9 @@ return(
 
 </header>
 
-
-
 {
-
 page==="home" &&
-
 <main>
-
 
 <div className="profile">
 
@@ -58,8 +51,6 @@ LVL 23
 
 </div>
 
-
-
 <div className="season">
 
 <h2>
@@ -72,9 +63,6 @@ LVL 23
 
 </div>
 
-
-
-
 <button 
 className="play"
 onClick={()=>setPage("game")}
@@ -84,7 +72,6 @@ onClick={()=>setPage("game")}
 
 </button>
   
-
 
 <div className="buttons">
 
@@ -106,15 +93,10 @@ onClick={()=>setPage("game")}
 
 </main>
 
-
 }
 
-
-
 {
-
 page==="profile" &&
-
 <div className="card">
 
 <h2>
@@ -135,76 +117,90 @@ Winrate: 68%
 
 </div>
 
-
 }
 
-
-
-
-
-<nav>
-
-
-<button onClick={()=>setPage("home")}>
-🏠
-</button>
-
-
-<button onClick={()=>setPage("profile")}>
-👤
-</button>
-
-
-<button>
-💬
-</button>
-
-
-<button>
-⚙️
-</button>
+{
+page==="game" &&
+<GameTable/>
+}
 
 {
 page==="shop" &&
 <Shop/>
 }
 
-
 {
 page==="wheel" &&
 <Wheel/>
 }
-
-<button onClick={()=>setPage("shop")}>
-
-🛒
-
-</button>
-
-
-<button onClick={()=>setPage("wheel")}>
-
-🎡
-
-</button>
 
 {
 page==="friends" &&
 <Friends/>
 }
 
-
 {
 page==="tournament" &&
 <Tournament/>
 }
 
-
-
 {
 page==="league" &&
 <League/>
 }
+
+{
+page==="history" &&
+<History/>
+}
+
+{
+page==="achievements" &&
+<Achievements/>
+}
+
+{
+page==="admin" &&
+<Admin/>
+}
+
+{
+page==="battlepass" &&
+<BattlePass/>
+}
+
+{
+page==="home" &&
+<MainMenu 
+setPage={setPage}
+/>
+}
+
+<nav>
+
+<button onClick={()=>setPage("home")}>
+🏠
+</button>
+
+<button onClick={()=>setPage("profile")}>
+👤
+</button>
+
+<button>
+💬
+</button>
+
+<button>
+⚙️
+</button>
+
+<button onClick={()=>setPage("shop")}>
+🛒
+</button>
+
+<button onClick={()=>setPage("wheel")}>
+🎡
+</button>
 
 <button 
 onClick={()=>setPage("friends")}
@@ -212,92 +208,43 @@ onClick={()=>setPage("friends")}
 👥
 </button>
 
-
 <button 
 onClick={()=>setPage("tournament")}
 >
 🏆
 </button>
 
-
 <button 
 onClick={()=>setPage("league")}
 >
 🏅
-</button>  
-
-
-
-  {
-page==="history" &&
-<History/>
-}
-
-
-{
-page==="achievements" &&
-<Achievements/>
-}
-
-
-{
-page==="admin" &&
-<Admin/>
-}
-
-
-{
-page==="home" &&
-
-<MainMenu 
-setPage={setPage}
-/>
-
-}
+</button>
 
 <button onClick={()=>setPage("history")}>
 📜
 </button>
 
-
 <button onClick={()=>setPage("achievements")}>
 🏅
 </button>
 
-
 <button onClick={()=>setPage("admin")}>
 ⚙️
 </button>
-  
-  {
-page==="battlepass" &&
-<BattlePass/>
-  }
 
 <button
 onClick={()=>setPage("battlepass")}
 >
 🎫
-</button>  
-  
-  
-</nav>
+</button>
 
+</nav>
 
 <Theme/>
 
-
-
 </div>
 
-)
-  
-{
-page==="game" &&
-<GameTable/>
+);
 }
-  
-}
-
 
 export default App;
