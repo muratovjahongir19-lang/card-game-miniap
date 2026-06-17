@@ -1,5 +1,13 @@
 const express = require("express");
 
+const battlePassRoutes =
+require("./routes/battlepass");
+
+app.use(
+"/battlepass",
+battlePassRoutes
+);
+
 const mongoose=require("mongoose");
 
 require("dotenv").config();
