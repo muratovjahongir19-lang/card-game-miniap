@@ -1,5 +1,10 @@
 require("dotenv").config();
 
+const {
+    startMatch,
+    getMatch
+} = require("./game/gameManager");
+
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
@@ -33,6 +38,28 @@ const io = new Server(server,{
 const players = [];
 
 io.on("connection",(socket)=>{
+
+    socket.on("startDurak",(room)=>{
+
+    const match =
+    startMatch(room);
+
+    if(match.players){
+
+        match.players.push({
+            id: player.id,
+            name: player.name,
+            hand:[]
+        });
+
+    }
+
+    io.to(room).emit(
+        "durakStarted",
+        match
+    );
+
+});
 
     console.log("Connected:",socket.id);
 
