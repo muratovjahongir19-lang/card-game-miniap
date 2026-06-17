@@ -9,6 +9,7 @@ import Achievements from "./pages/Achievements";
 import Admin from "./pages/Admin";
 import MainMenu from "./components/MainMenu";
 import Theme from "./components/Theme";
+import BattlePass from "./pages/BattlePass";
 
 function App(){
 
@@ -267,6 +268,18 @@ setPage={setPage}
 <button onClick={()=>setPage("admin")}>
 ⚙️
 </button>
+  
+  {
+page==="battlepass" &&
+<BattlePass/>
+  }
+
+<button
+onClick={()=>setPage("battlepass")}
+>
+🎫
+</button>  
+  
   
 </nav>
 
