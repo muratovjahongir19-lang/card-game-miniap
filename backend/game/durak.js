@@ -1,54 +1,50 @@
-const {createDeck}=require("./cards");
-const shuffle=require("./shuffle");
+const { createDeck } = require("./cards");
+const shuffle = require("./shuffle");
 
 function createGame(){
 
-const deck=
-shuffle(
-createDeck()
-);
+    const deck = shuffle(createDeck());
 
-const trump=
-deck[
-deck.length-1
-];
+    const trumpCard = deck[deck.length - 1];
 
-return{
+    return {
 
-deck,
+        deck,
 
-trump,
+        trump: trumpCard,
 
-players:[],
+        players: [],
 
-table:[],
+        attacker: 0,
 
-turn:0
+        defender: 1,
 
+        table: [],
+
+        started: false
+
+    };
+}
+
+function dealCards(game){
+
+    game.players.forEach(player=>{
+
+        while(
+            player.hand.length < 6 &&
+            game.deck.length > 0
+        ){
+            player.hand.push(
+                game.deck.pop()
+            );
+        }
+
+    });
+
+    return game;
+}
+
+module.exports = {
+    createGame,
+    dealCards
 };
-
-}
-
-module.exports={
-createGame
-};
-
-
-function deal(game){
-
-game.players.forEach(player=>{
-
-while(
-player.hand.length<6 &&
-game.deck.length>0
-){
-
-player.hand.push(
-game.deck.pop()
-);
-
-}
-
-});
-
-}
