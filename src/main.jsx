@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 
 import App from "./App";
 
-import "./style.css";
+import "./Style.css";
 
 
 ReactDOM.createRoot(
