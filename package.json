@@ -9,7 +9,9 @@
     "vite": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "@twa-dev/sdk": "latest"
+    "@twa-dev/sdk": "latest",
+    "axios": "latest",
+    "socket.io-client": "latest"
   },
   "devDependencies": {
     "tailwindcss": "latest"
