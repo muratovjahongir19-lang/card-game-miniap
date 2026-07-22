@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spin the Bottle UZ - Целуй и Знакомься</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #f4f4f4;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        /* ---------------- ВЕРХНЯЯ ПАНЕЛЬ ---------------- */
+        .header {
+            background: linear-gradient(180deg, #d88c43 0%, #b86e28 100%);
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .currency-badge {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 18px;
+            padding: 4px 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: bold;
+            font-size: 15px;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+        }
+
+        .heart-icon {
+            color: #ff3b30;
+            font-size: 18px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .icon-btn .badge-dot {
+            position: absolute;
+            top: 2px; right: 2px;
+            width: 12px; height: 12px;
+            background: #ff3b30;
+            border-radius: 50%;
+            border: 1px solid #fff;
+        }
+
+        .room-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            font-size: 11px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .room-badge {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+        }
+
+        /* ---------------- ДЕРЕВЯННЫЙ СТОЛ ---------------- */
+        .table-area {
+            position: relative;
+            flex: 1.2;
+            background: #c88748;
+            background-image: 
+                radial-gradient(ellipse at center, rgba(235, 168, 96, 0.6) 0%, rgba(168, 98, 38, 0.9) 100%),
+                repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 6px);
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .bottle-wrapper {
+            position: absolute;
+            width: 65px;
+            height: 140px;
+            z-index: 5;
+            cursor: pointer;
+            transition: transform 3.5s cubic-bezier(0.15, 0.85, 0.35, 1.2);
+            filter: drop-shadow(0 12px 10px rgba(0,0,0,0.6));
+        }
+
+        .seat {
+            position: absolute;
+            width: 72px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            z-index: 4;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 58px;
+            height: 58px;
+            border-radius: 12px;
+            background: #2a2a2a;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            border: 2px solid #ffffff;
+        }
+
+        .avatar-img {
+            width: 100%; height: 100%;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .crown-overlay {
+            position: absolute;
+            top: -14px; left: -10px;
+            font-size: 20px;
+            transform: rotate(-15deg);
+            z-index: 2;
+        }
+
+        .kiss-counter {
+            position: absolute;
+            top: 2px; right: -6px;
+            background: #ff2a5f;
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 1px 4px;
+            border-radius: 8px;
+            border: 1px solid #ffffff;
+            z-index: 2;
+        }
+
+        .gift-overlay {
+            position: absolute;
+            bottom: -6px; right: -6px;
+            font-size: 16px;
+            z-index: 2;
+        }
+
+        .gold-frame {
+            border: 2px solid #ffd700 !important;
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.7) !important;
+        }
+
+        .player-name {
+            margin-top: 4px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            text-align: center;
+            white-space: nowrap;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .spin-indicator {
+            position: absolute;
+            left: -90px; top: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 8px;
+            white-space: nowrap;
+            animation: bounceLeft 1s infinite alternate;
+        }
+
+        @keyframes bounceLeft {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-4px); }
+        }
+
+        /* Расположение мест */
+        .pos-1 { top: 8%; left: 16%; }
+        .pos-2 { top: 4%; left: 52%; }
+        .pos-3 { top: 12%; right: 10%; }
+        .pos-4 { top: 42%; right: 8%; }
+        .pos-5 { bottom: 12%; right: 12%; }
+        .pos-6 { bottom: 4%; left: 45%; }
+        .pos-7 { bottom: 18%; left: 12%; }
+        .pos-8 { top: 38%; left: 8%; }
+
+        /* ---------------- ЧАТ ---------------- */
+        .chat-section {
+            flex: 1;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            z-index: 6;
+            position: relative;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 10px 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #f8f9fa;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .chat-avatar {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .chat-bubble {
+            background: #ffffff;
+            padding: 6px 10px;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            max-width: 80%;
+        }
+
+        .chat-author {
+            font-weight: bold;
+            color: #d86c00;
+            font-size: 12px;
+        }
+
+        .chat-text {
+            color: #212529;
+            font-size: 13px;
+        }
+
+        .translate-btn {
+            color: #8c8c8c;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .system-event {
+            background: #fff0f3;
+            border: 1px solid #ffccd5;
+            padding: 6px 12px;
+            border-radius: 20px;
+            align-self: center;
+            font-size: 12px;
+            color: #c9184a;
+            font-weight: 600;
+        }
+
+        .chat-input-bar {
+            height: 52px;
+            background: #ffffff;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            height: 36px;
+            border: 1px solid #dee2e6;
+            border-radius: 18px;
+            padding: 0 14px;
+            font-size: 13px;
+            outline: none;
+            background: #f1f3f5;
+        }
+
+        .input-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .send-btn {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f77f00, #d62828);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* МОДАЛКА ПОДАРКОВ */
+        .modal-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: flex-end;
+            z-index: 20;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            width: 100%;
+            background: #ffffff;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            padding: 16px;
+        }
+
+        .gift-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .gift-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 10px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
+    <div class="header">
+        <div class="header-left">
+            <div class="currency-badge" onclick="addHearts()">
+                <i class="fa-solid fa-heart heart-icon"></i>
+                <span id="heart-count">17</span>
+            </div>
+            <button class="icon-btn"><i class="fa-solid fa-dharmachakra"></i></button>
+            <button class="icon-btn">
+                <i class="fa-solid fa-trophy"></i>
+                <span class="badge-dot"></span>
+            </button>
+        </div>
+
+        <div class="header-actions">
+            <button class="icon-btn"><i class="fa-solid fa-bars"></i></button>
+            <button class="icon-btn"><i class="fa-solid fa-gear"></i></button>
+            <button class="icon-btn" onclick="Telegram.WebApp.close()"><i class="fa-solid fa-right-from-bracket"></i></button>
+            <div class="room-info">
+                <span>Стол 2002</span>
+                <span class="room-badge">1</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ИГРОВОЙ СТОЛ -->
+    <div class="table-area">
+
+        <!-- Бутылочка -->
+        <div class="bottle-wrapper" id="bottle" onclick="spinBottle()">
+            <svg viewBox="0 0 60 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 12 C22 6, 38 6, 38 12 L38 38 C38 48, 52 54, 52 70 L52 126 C52 135, 8 135, 8 126 L8 70 C8 54, 22 48, 22 38 Z" fill="url(#sprite-grad)" stroke="rgba(255,255,255,0.7)" stroke-width="1.5"/>
+                <rect x="10" y="72" width="40" height="30" rx="3" fill="#008751" opacity="0.85"/>
+                <text x="30" y="91" fill="#ffffff" font-size="9" font-weight="bold" text-anchor="middle">Sprite</text>
+                <rect x="22" y="3" width="16" height="8" rx="2" fill="#00a859" stroke="#fff"/>
+                <defs>
+                    <linearGradient id="sprite-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#2ed573" />
+                        <stop offset="100%" stop-color="#019342" />
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+
+        <!-- 8 Мест Игроков -->
+        <div class="seat pos-1" onclick="openGiftModal('Alex, 24')">
+            <div class="avatar-container"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" class="avatar-img"></div>
+            <div class="player-name">Alex, 24</div>
+        </div>
+
+        <div class="seat pos-2" onclick="openGiftModal('Azizbek, 30')">
+            <div class="avatar-container"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" class="avatar-img"></div>
+            <div class="player-name">Azizbek, 30</div>
+        </div>
+
+        <div class="seat pos-3" onclick="openGiftModal('S a r a')">
+            <div class="avatar-container gold-frame">
+                <span class="crown-overlay">👑</span>
+                <span class="kiss-counter">💋 169</span>
+                <span class="gift-overlay">☕</span>
+                <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100" class="avatar-img">
+            </div>
+            <div class="player-name">✨[S a r a]✨</div>
+        </div>
+
+        <div class="seat pos-4" onclick="openGiftModal('No name, 18')">
+            <div class="avatar-container"><img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100" class="avatar-img"></div>
+            <div class="player-name">No name, 18</div>
+        </div>
+
+        <div class="seat pos-5" onclick="openGiftModal('shirina, 22')">
+            <div class="avatar-container">
+                <span class="kiss-counter">💋 164</span>
+                <span class="gift-overlay">🌹</span>
+                <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=100" class="avatar-img">
+            </div>
+            <div class="player-name">shirina, 22</div>
+        </div>
+
+        <div class="seat pos-6" onclick="openGiftModal('Зиёда, 18')">
+            <div class="avatar-container gold-frame">
+                <span class="crown-overlay">👑</span>
+                <span class="kiss-counter">💋 3</span>
+                <span class="gift-overlay">☕</span>
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" class="avatar-img">
+            </div>
+            <div class="player-name">✨Зиёда, 18</div>
+        </div>
+
+        <div class="seat pos-7" onclick="openGiftModal('Abu, 19')">
+            <div class="spin-indicator">← Крутит бутылочку</div>
+            <div class="avatar-container gold-frame">
+                <span class="crown-overlay">👑</span>
+                <span class="kiss-counter">💋 162</span>
+                <span class="gift-overlay">☕</span>
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100" class="avatar-img">
+            </div>
+            <div class="player-name">☀️Abu, 19</div>
+        </div>
+
+        <div class="seat pos-8" onclick="openGiftModal('---')">
+            <div class="avatar-container"><img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100" class="avatar-img"></div>
+            <div class="player-name">_ _ _</div>
+        </div>
+
+    </div>
+
+    <!-- ЧАТ -->
+    <div class="chat-section">
+        <div class="chat-messages" id="chat-box">
+            <div class="chat-item">
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100" class="chat-avatar">
+                <div class="chat-bubble">
+                    <div class="chat-author">☀️ 🎭 Abu 🎭:</div>
+                    <div class="chat-text">Привет всем в комнате! С кем покрутим?</div>
+                    <span class="translate-btn">Показать перевод</span>
+                </div>
+            </div>
+
+            <div class="system-event">
+                <i class="fa-solid fa-lock"></i>
+                <span>Abu стал ухаживать ❤️ 422 за S a r a</span>
+            </div>
+        </div>
+
+        <div class="chat-input-bar">
+            <input type="text" class="chat-input" id="message-input" placeholder="Написать сообщение..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button class="input-btn"><i class="fa-solid fa-puzzle-piece"></i></button>
+            <button class="input-btn" onclick="openGiftModal('Игрокам')" style="color: #d62828;"><i class="fa-solid fa-gift"></i></button>
+            <button class="send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ПОДАРКОВ -->
+    <div class="modal-overlay" id="gift-modal">
+        <div class="modal-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-weight:bold; color:#000;">Подарок для <span id="target-player-name"></span></div>
+                <button class="input-btn" onclick="closeGiftModal()">✕</button>
+            </div>
+            <div class="gift-grid">
+                <div class="gift-card" onclick="sendGift('💋 Поцелуй', 1)">
+                    <span style="font-size:24px;">💋</span>
+                    <span style="font-size:11px; font-weight:600; color:#333;">Поцелуй</span>
+                    <span style="font-size:11px; color:#ff3b30;">❤️ 1</span>
+                </div>
+                <div class="gift-card" onclick="sendGift('☕ Чай', 2)">
+                    <span style="font-size:24px;">☕</span>
+                    <span style="font-size:11px; font-weight:600; color:#333;">Чай</span>
+                    <span style="font-size:11px; color:#ff3b30;">❤️ 2</span>
+                </div>
+                <div class="gift-card" onclick="sendGift('🌹 Роза', 5)">
+                    <span style="font-size:24px;">🌹</span>
+                    <span style="font-size:11px; font-weight:600; color:#333;">Роза</span>
+                    <span style="font-size:11px; color:#ff3b30;">❤️ 5</span>
+                </div>
+                <div class="gift-card" onclick="sendGift('👑 Корона', 10)">
+                    <span style="font-size:24px;">👑</span>
+                    <span style="font-size:11px; font-weight:600; color:#333;">Корона</span>
+                    <span style="font-size:11px; color:#ff3b30;">❤️ 10</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) { tg.ready(); tg.expand(); }
+
+    let hearts = 17;
+    let isSpinning = false;
+    let currentAngle = 0;
+    let selectedPlayer = 'S a r a';
+
+    function spinBottle() {
+        if (isSpinning) return;
+        isSpinning = true;
+        const bottle = document.getElementById('bottle');
+        currentAngle += 1080 + Math.floor(Math.random() * 1440);
+    
