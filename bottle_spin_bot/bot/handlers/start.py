@@ -2,17 +2,21 @@
 Start command handler
 """
 
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from telegram.ext import ContextTypes
+from bot.config import settings
 from bot.utils.constants import MESSAGES, EMOJI_MAP
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /start command"""
     user = update.effective_user
-    
+
     # Create inline keyboard
     keyboard = [
+        [
+            InlineKeyboardButton("🍾 Открыть мини-апп", web_app=WebAppInfo(url=settings.webapp_url)),
+        ],
         [
             InlineKeyboardButton("🎮 Join Room", callback_data="join_room"),
             InlineKeyboardButton("➕ Create Room", callback_data="create_room"),

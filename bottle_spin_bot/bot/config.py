@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     # Telegram
     telegram_bot_token: str
     telegram_bot_username: str = "bottle_spin_bot"
+    webapp_url: str = "https://magnificent-kitten-2245c0.netlify.app"
 
     # Database
     database_url: str
