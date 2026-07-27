@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Bottle Spin — Крути. Целуй. Побеждай.</title>
+<meta name="description" content="Bottle Spin — вечеринка внутри Telegram. Крути бутылочку, знакомься и собирай подарки." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --bg-0:#150c12;
+    --bg-1:#20121b;
+    --panel:#2a1722;
+    --panel-2:#33192a;
+    --line: rgba(255,244,248,0.09);
+    --line-strong: rgba(255,244,248,0.16);
+    --ink:#f7ecf1;
+    --muted:#c4a3b6;
+    --muted-2:#8d6d80;
+    --rose:#ff3d7a;
+    --rose-deep:#c81f5c;
+    --amber:#ffb648;
+    --amber-deep:#e08d1f;
+    --ok:#5fd6a5;
+    --radius-xl: 28px;
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --tgbg: var(--bg-0);
+    --tgtext: var(--ink);
+    --tghint: var(--muted);
+    --tgbutton: var(--rose);
+    --tgbuttontext: #fff2f6;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:"Manrope", ui-sans-serif, system-ui, sans-serif;
+    background: var(--tgbg);
+    color: var(--tgtext);
+    overflow-x:hidden;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+  h1,h2,h3{
+    font-family:"Unbounded", "Manrope", sans-serif;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  button{font-family:inherit; border:none; background:none; color:inherit; cursor:pointer;}
+  svg{display:block;}
+
+  /* ---------- backdrop ---------- */
+  .mesh{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(60% 42% at 82% -6%, rgba(255,182,72,0.24), transparent 60%),
+      radial-gradient(70% 50% at -10% 8%, rgba(255,61,122,0.30), transparent 62%),
+      radial-gradient(90% 60% at 50% 118%, rgba(60,18,45,0.9), transparent 60%),
+      linear-gradient(175deg, var(--bg-1) 0%, var(--bg-0) 55%, #0e0810 100%);
+  }
+  .grain{
+    position:fixed; inset:-10%; z-index:1; pointer-events:none; opacity:0.35; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+  .spark{
+    position:absolute; border-radius:50%;
+    background: radial-gradient(circle, rgba(255,214,150,0.9), transparent 70%);
+    filter: blur(0.5px);
+    animation: drift 7s ease-in-out infinite;
+    opacity:0;
+  }
+  @keyframes drift{
+    0%{ transform: translate3d(0,10px,0) scale(0.6); opacity:0; }
+    18%{ opacity:0.9; }
+    50%{ transform: translate3d(-6px,-18px,0) scale(1); opacity:0.6;}
+    100%{ transform: translate3d(4px,-34px,0) scale(0.5); opacity:0;}
+  }
+
+  /* ---------- shell ---------- */
+  #shell{ position:relative; z-index:2; min-height:100vh; padding-bottom: calc(84px + var(--safe-bottom)); }
+
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: calc(16px + var(--safe-top)) 20px 10px;
+  }
+  .brand{ display:flex; align-items:center; gap:9px; }
+  .brand-mark{ width:26px; height:26px; }
+  .brand-word{ font-size:14px; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink); }
+  .pill{
+    display:flex; align-items:center; gap:6px;
+    padding:7px 12px 7px 9px; border-radius:999px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
+    border:1px solid var(--line-strong);
+    font-size:13px; font-weight:700; color:var(--amber);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .view{ display:none; padding: 4px 20px 10px; animation: rise 0.5s cubic-bezier(.2,.8,.2,1) both; }
+  .view.active{ display:block; }
+  @keyframes rise{ from{ opacity:0; transform: translate3d(0,14px,0); } to{ opacity:1; transform:none; } }
+
+  /* ---------- hero ---------- */
+  .hero{ position:relative; padding-top:6px; }
+  .hero-stage{
+    position:relative; height:200px; display:flex; align-items:center; justify-content:center;
+    margin-bottom:6px;
+  }
+  .ring{
+    position:absolute; width:172px; height:172px; border-radius:50%;
+    border:1.5px dashed var(--line-strong);
+    animation: spinSlow 22s linear infinite;
+  }
+  .ring.ring-2{ width:132px; height:132px; border-color:rgba(255,182,72,0.28); animation-duration:16s; animation-direction:reverse; }
+  @keyframes spinSlow{ to{ transform: rotate(360deg); } }
+
+  .bottle-wrap{ position:relative; width:64px; height:170px; transform: rotate(-8deg); transition: transform 1.1s cubic-bezier(.16,1,.3,1); }
+  .bottle-wrap.spin{ transition: transform 1.9s cubic-bezier(.1,.7,.2,1); }
+  .bottle-wrap:active{ transform: scale(0.96) rotate(-8deg); }
+
+  .headline{ margin-top:6px; font-size: 30px; line-height:1.06; font-weight:800; color:var(--ink); }
+  .headline em{ font-style:normal; color:var(--rose); }
+  .sub{ margin-top:10px; font-size:14.5px; line-height:1.55; color:var(--muted); max-width: 34ch; }
+
+  .cta-row{ display:flex; gap:10px; margin-top:20px; }
+  .btn-primary{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:16px 18px; border-radius:16px; font-weight:800; font-size:15.5px; color:#2a0714;
+    background: linear-gradient(135deg, var(--amber), var(--rose) 78%);
+    box-shadow: 0 10px 24px -10px rgba(255,61,122,0.55), inset 0 1px 0 rgba(255,255,255,0.35);
+    transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s;
+  }
+  .btn-primary:active{ transform: scale(0.965); box-shadow: 0 4px 14px -8px rgba(255,61,122,0.5); }
+  .btn-ghost{
+    width:52px; display:flex; align-items:center; justify-content:center;
+    border-radius:16px; border:1px solid var(--line-strong);
+    background: rgba(255,255,255,0.04);
+    transition: transform .18s, background .18s;
+  }
+  .btn-ghost:active{ transform: scale(0.94); background: rgba(255,255,255,0.09); }
+
+  /* ---------- nav grid ---------- */
+  .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:26px; }
+  .tile{
+    position:relative; overflow:hidden; text-align:left;
+    padding:16px 14px; border-radius:var(--radius-lg);
+    background: linear-gradient(160deg, var(--panel-2), var(--panel));
+    border:1px solid var(--line);
+    transition: transform .18s cubic-bezier(.2,.8,.2,1), border-color .18s;
+  }
+  .tile:active{ transform: scale(0.965); border-color: var(--line-strong); }
+  .tile-icon{
+    width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center;
+    margin-bottom:12px; background: rgba(255,255,255,0.06);
+  }
+  .tile-title{ font-weight:700; font-size:14.5px; color:var(--ink); }
+  .tile-sub{ font-size:12px; color:var(--muted-2); margin-top:3px; }
+  .tile-glow{ position:absolute; width:90px; height:90px; right:-30px; top:-30px; border-radius:50%; filter:blur(2px); opacity:0.5; }
+
+  .section-gap{ height:8px; }
+  .footnote{ margin-top:22px; text-align:center; font-size:11.5px; color:var(--muted-2); letter-spacing:0.02em; }
+
+  /* ---------- shared header for sub-views ---------- */
+  .view-head{ display:flex; align-items:center; gap:12px; padding-top:4px; margin-bottom:18px; }
+  .back-btn{
+    width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    background: rgba(255,255,255,0.05); border:1px solid var(--line);
+  }
+  .back-btn:active{ transform: scale(0.92); }
+  .view-title{ font-size:20px; font-weight:800; }
+
+  /* ---------- rooms ---------- */
+  .skeleton-row{ height:72px; border-radius:16px; margin-bottom:10px; background: linear-gradient(100deg, var(--panel) 30%, var(--panel-2) 50%, var(--panel) 70%); background-size:200% 100%; animation: shimmer 1.4s ease-in-out infinite; }
+  @keyframes shimmer{ from{ background-position: 140% 0;} to{ background-position: -40% 0; } }
+
+  .empty{
+    text-align:center; padding: 34px 14px 10px;
+  }
+  .empty-badge{
+    width:64px; height:64px; margin:0 auto 16px; border-radius:18px;
+    background: linear-gradient(160deg, var(--panel-2), var(--panel)); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .empty h3{ font-size:16.5px; margin-bottom:6px; }
+  .empty p{ font-size:13.5px; color:var(--muted); max-width:30ch; margin:0 auto 20px; line-height:1.5; }
+
+  /* ---------- profile ---------- */
+  .profile-card{
+    display:flex; align-items:center; gap:14px; padding:18px; border-radius:var(--radius-lg);
+    background: linear-gradient(160deg, var(--panel-2), var(--panel)); border:1px solid var(--line);
+  }
+  .avatar{
+    width:58px; height:58px; border-radius:50%; flex-shrink:0; overflow:hidden;
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:20px; color:#2a0714;
+    background: linear-gradient(135deg, var(--amber), var(--rose));
+    border:2px solid rgba(255,255,255,0.18);
+  }
+  .avatar img{ width:100%; height:100%; object-fit:cover; }
+  .profile-name{ font-weight:800; font-size:17px; }
+  .profile-tag{ font-size:12.5px; color:var(--muted-2); margin-top:2px; }
+
+  .stat-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:14px; }
+  .stat{ padding:14px 10px; border-radius:14px; background: rgba(255,255,255,0.035); border:1px solid var(--line); text-align:center; }
+  .stat-val{ font-family:"Unbounded"; font-size:18px; font-weight:700; }
+  .stat-label{ font-size:10.5px; color:var(--muted-2); margin-top:4px; text-transform:uppercase; letter-spacing:0.06em; }
+
+  .vip-banner{
+    margin-top:16px; padding:16px; border-radius:16px; position:relative; overflow:hidden;
+    background: linear-gradient(120deg, #3a1c12, #2a1722);
+    border:1px solid rgba(255,182,72,0.3);
+  }
+  .vip-banner b{ display:block; font-size:14.5px; margin-bottom:4px; color:var(--amber); }
+  .vip-banner span{ font-size:12.5px; color:var(--muted); }
+
+  /* ---------- shop ---------- */
+  .plan{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:16px; border-radius:16px; margin-bottom:10px;
+    background: rgba(255,255,255,0.035); border:1px solid var(--line);
+  }
+  .plan.best{ border-color: rgba(255,182,72,0.45); background: linear-gradient(120deg, rgba(255,182,72,0.09), rgba(255,61,122,0.06)); }
+  .plan-name{ font-weight:700; font-size:14.5px; }
+  .plan-desc{ font-size:12px; color:var(--muted-2); margin-top:3px; }
+  .plan-price{ display:flex; align-items:center; gap:6px; font-weight:800; font-size:15px; color:var(--amber); white-space:nowrap; }
+  .badge-best{ display:inline-block; margin-left:8px; font-size:10px; font-weight:800; padding:2px 7px; border-radius:999px; background: var(--amber); color:#2a1704; vertical-align:middle; }
+
+  /* ---------- help ---------- */
+  .rule{ display:flex; gap:12px; padding:14px 0; border-bottom:1px solid var(--line); }
+  .rule:last-child{ border-bottom:none; }
+  .rule-num{ font-family:"Unbounded"; font-size:13px; font-weight:700; color:var(--rose); flex-shrink:0; width:22px; }
+  .rule-text{ font-size:13.5px; line-height:1.55; color:var(--ink); }
+  .rule-text b{ color:var(--amber); }
+
+  /* ---------- tabbar ---------- */
+  .tabbar{
+    position:fixed; left:0; right:0; bottom:0; z-index:5;
+    display:flex; justify-content:space-around;
+    padding: 10px 10px calc(10px + var(--safe-bottom));
+    background: linear-gradient(180deg, rgba(21,12,18,0), rgba(21,12,18,0.94) 30%);
+    backdrop-filter: blur(14px);
+    border-top:1px solid var(--line);
+  }
+  .tab{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:6px 16px; border-radius:12px; color:var(--muted-2); transition: color .18s, transform .18s; }
+  .tab.active{ color: var(--ink); }
+  .tab:active{ transform: scale(0.9); }
+  .tab-label{ font-size:10.5px; font-weight:700; letter-spacing:0.01em; }
+  .tab-dot{ width:4px; height:4px; border-radius:50%; background: var(--rose); opacity:0; transition:opacity .18s; margin-top:-2px; }
+  .tab.active .tab-dot{ opacity:1; }
+
+  .toast{
+    position:fixed; left:50%; bottom:96px; transform: translate(-50%, 12px); z-index:20;
+    padding:11px 18px; border-radius:999px; font-size:13px; font-weight:700;
+    background: rgba(20,10,15,0.92); border:1px solid var(--line-strong); color:var(--ink);
+    opacity:0; pointer-events:none; transition: opacity .25s, transform .25s;
+    box-shadow: 0 12px 30px -10px rgba(0,0,0,0.6);
+  }
+  .toast.show{ opacity:1; transform: translate(-50%, 0); }
+
+  @media (min-width: 480px){
+    #shell{ max-width:480px; margin:0 auto; }
+    .tabbar{ max-width:480px; margin:0 auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="mesh"></div>
+<div class="grain"></div>
+
+<div id="shell">
+
+  <div class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" fill="none"><path d="M13 3h6v5.2c2.4 1.4 4 4 4 7v10.8a3 3 0 0 1-3 3h-8a3 3 0 0 1-3-3V15.2c0-3 1.6-5.6 4-7V3z" fill="none" stroke="#ff3d7a" stroke-width="2" stroke-linejoin="round"/><path d="M13 3h6" stroke="#ffb648" stroke-width="2" stroke-linecap="round"/><path d="M12 20h8" stroke="#ffb648" stroke-width="1.6" stroke-linecap="round" opacity="0.7"/></svg>
+      <span class="brand-word">Bottle&nbsp;Spin</span>
+    </div>
+    <div class="pill">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" fill="#ffb648"/></svg>
+      <span id="energyVal">100</span>
+    </div>
+  </div>
+
+  <!-- ===================== HOME ===================== -->
+  <main class="view active" id="view-home" data-view="home">
+    <section class="hero">
+      <div class="hero-stage" id="bottleStage">
+        <div class="ring"></div>
+        <div class="ring ring-2"></div>
+        <span class="spark" style="left:18%; top:10%; width:6px; height:6px; animation-delay:.2s;"></span>
+        <span class="spark" style="left:78%; top:22%; width:4px; height:4px; animation-delay:1.4s;"></span>
+        <span class="spark" style="left:66%; top:70%; width:5px; height:5px; animation-delay:2.6s;"></span>
+        <span class="spark" style="left:24%; top:74%; width:4px; height:4px; animation-delay:3.8s;"></span>
+        <div class="bottle-wrap" id="bottle" role="button" aria-label="Крутить бутылочку">
+          <svg width="64" height="170" viewBox="0 0 64 170" fill="none">
+            <defs>
+              <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#ff6fa0"/>
+                <stop offset="0.55" stop-color="#c81f5c"/>
+                <stop offset="1" stop-color="#5c0e2c"/>
+              </linearGradient>
+              <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#fff" stop-opacity="0.55"/>
+                <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M24 6h16v22c8 6 12 14 12 24v98a10 10 0 0 1-10 10H22a10 10 0 0 1-10-10V52c0-10 4-18 12-24V6z" fill="url(#glass)" stroke="#3a0a1e" stroke-width="1.5"/>
+            <rect x="24" y="2" width="16" height="8" rx="2" fill="#ffb648"/>
+            <path d="M18 66c-2 8-3 16-3 24v54c0 5 4 10 10 10" stroke="url(#shine)" stroke-width="4" stroke-linecap="round" fill="none"/>
+            <rect x="14" y="100" width="36" height="20" rx="3" fill="#ffe6ee" opacity="0.92"/>
+            <text x="32" y="114" text-anchor="middle" font-family="Unbounded" font-size="9" font-weight="800" fill="#a01249">SPIN</text>
+          </svg>
+        </div>
+      </div>
+
+      <h1 class="headline">Крути.<br>Целуй. <em>Побеждай.</em></h1>
+      <p class="sub">Вечеринка внутри Telegram: заходи в комнату, крути бутылочку и знакомься с новыми людьми за столом.</p>
+
+      <div class="cta-row">
+        <button class="btn-primary" data-nav="rooms">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 5v14l14-7z" fill="#2a0714"/></svg>
+          Играть
+        </button>
+        <button class="btn-ghost" data-nav="help" aria-label="Помощь">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#f7ecf1" stroke-width="1.6"/><path d="M9.5 9.2a2.5 2.5 0 1 1 3.6 2.5c-.8.5-1.1.9-1.1 1.8" stroke="#f7ecf1" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="16.6" r="0.9" fill="#f7ecf1"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <div class="grid">
+      <button class="tile" data-nav="rooms">
+        <span class="tile-glow" style="background:radial-gradient(circle, rgba(255,61,122,0.5), transparent 70%);"></span>
+        <span class="tile-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="9" r="3" stroke="#ff3d7a" stroke-width="1.6"/><circle cx="17" cy="9" r="3" stroke="#ff3d7a" stroke-width="1.6"/><path d="M2.5 19c.6-3 2.6-5 5.5-5s4.9 2 5.5 5" stroke="#ff3d7a" stroke-width="1.6" stroke-linecap="round"/><path d="M12.5 19c.6-3 2.6-5 5.5-5s4.4 1.6 5.1 4" stroke="#ff3d7a" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <div class="tile-title">Комнаты</div>
+        <div class="tile-sub">Войти или создать стол</div>
+      </button>
+
+      <button class="tile" data-nav="profile">
+        <span class="tile-glow" style="background:radial-gradient(circle, rgba(255,182,72,0.45), transparent 70%);"></span>
+        <span class="tile-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#ffb648" stroke-width="1.6"/><path d="M4 20c1-4.4 4.2-7 8-7s7 2.6 8 7" stroke="#ffb648" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <div class="tile-title">Профиль</div>
+        <div class="tile-sub">Уровень, монеты, статус</div>
+      </button>
+
+      <button class="tile" data-nav="shop">
+        <span class="tile-glow" style="background:radial-gradient(circle, rgba(95,214,165,0.35), transparent 70%);"></span>
+        <span class="tile-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 8h12l1.4 11.2a2 2 0 0 1-2 2.3H6.6a2 2 0 0 1-2-2.3L6 8Z" stroke="#5fd6a5" stroke-width="1.6"/><path d="M9 8a3 3 0 0 1 6 0" stroke="#5fd6a5" stroke-width="1.6"/></svg></span>
+        <div class="tile-title">Магазин</div>
+        <div class="tile-sub">VIP и наборы монет</div>
+      </button>
+
+      <button class="tile" data-nav="help">
+        <span class="tile-glow" style="background:radial-gradient(circle, rgba(255,111,160,0.35), transparent 70%);"></span>
+        <span class="tile-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 5h16v11H9l-4 4V5Z" stroke="#ff6fa0" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
+        <div class="tile-title">Правила</div>
+        <div class="tile-sub">Как проходит игра</div>
+      </button>
+    </div>
+
+    <p class="footnote">Bottle Spin · 18+ · сезон подарков открыт</p>
+  </main>
+
+  <!-- ===================== ROOMS ===================== -->
+  <main class="view" id="view-rooms" data-view="rooms">
+    <div class="view-head">
+      <button class="back-btn" data-nav="home"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 5 8 12l7 7" stroke="#f7ecf1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <h2 class="view-title">Комнаты</h2>
+    </div>
+    <div id="roomsBody">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row" style="opacity:.7"></div>
+      <div class="skeleton-row" style="opacity:.4"></div>
+    </div>
+  </main>
+
+  <!-- ===================== PROFILE ===================== -->
+  <main class="view" id="view-profile" data-view="profile">
+    <div class="view-head">
+      <button class="back-btn" data-nav="home"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 5 8 12l7 7" stroke="#f7ecf1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <h2 class="view-title">Профиль</h2>
+    </div>
+
+    <div class="profile-card">
+      <div class="avatar" id="avatarBox">Б</div>
+      <div>
+        <div class="profile-name" id="profileName">Гость вечеринки</div>
+        <div class="profile-tag" id="profileTag">без статуса · за столом впервые</div>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-val">100</div><div class="stat-label">Монеты</div></div>
+      <div class="stat"><div class="stat-val">0</div><div class="stat-label">Поцелуи</div></div>
+      <div class="stat"><div class="stat-val">0</div><div class="stat-label">Рейтинг</div></div>
+    </div>
+
+    <div class="vip-banner">
+      <b>Открой VIP-стол</b>
+      <span>+20% монет, эксклюзивные комнаты и 10 подарков в день бесплатно.</span>
+    </div>
+  </main>
+
+  <!-- ===================== SHOP ===================== -->
+  <main class="view" id="view-shop" data-view="shop">
+    <div class="view-head">
+      <button class="back-btn" data-nav="home"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 5 8 12l7 7" stroke="#f7ecf1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <h2 class="view-title">Магазин</h2>
+    </div>
+
+    <div class="plan">
+      <div>
+        <div class="plan-name">VIP на 30 дней</div>
+        <div class="plan-desc">Старт для новых игроков</div>
+      </div>
+      <div class="plan-price">99 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" fill="#ffb648"/></svg></div>
+    </div>
+
+    <div class="plan best">
+      <div>
+        <div class="plan-name">VIP на 90 дней <span class="badge-best">Выгодно</span></div>
+        <div class="plan-desc">−17% к цене за день</div>
+      </div>
+      <div class="plan-price">249 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" fill="#ffb648"/></svg></div>
+    </div>
+
+    <div class="plan">
+      <div>
+        <div class="plan-name">VIP на 180 дней</div>
+        <div class="plan-desc">Для завсегдатаев стола</div>
+      </div>
+      <div class="plan-price">449 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" fill="#ffb648"/></svg></div>
+    </div>
+
+    <p class="footnote">Оплата через Telegram Stars, прямо в чате с ботом.</p>
+  </main>
+
+  <!-- ===================== HELP ===================== -->
+  <main class="view" id="view-help" data-view="help">
+    <div class="view-head">
+      <button class="back-btn" data-nav="home"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 5 8 12l7 7" stroke="#f7ecf1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <h2 class="view-title">Правила</h2>
+    </div>
+
+    <div class="rule"><div class="rule-num">01</div><div class="rule-text">Заходишь в комнату — система сажает игроков за стол, чередуя парней и девушек.</div></div>
+    <div class="rule"><div class="rule-num">02</div><div class="rule-text">Каждые <b>30 секунд</b> бутылочка крутится сама и выбирает пару.</div></div>
+    <div class="rule"><div class="rule-num">03</div><div class="rule-text">У пары есть <b>10 секунд</b>, чтобы решить: Целовать или Пропустить.</div></div>
+    <div class="rule"><div class="rule-num">04</div><div class="rule-text">Оба выбрали «целовать» — очки популярности и монеты обоим.</div></div>
+    <div class="rule"><div class="rule-num">05</div><div class="rule-text">Между раундами можно отправить подарок и написать в чат комнаты.</div></div>
+  </main>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<nav class="tabbar">
+  <button class="tab active" data-nav="home">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 11 12 4l8 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="tab-label">Главная</span><span class="tab-dot"></span>
+  </button>
+  <button class="tab" data-nav="rooms">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="9" r="2.6" stroke="currentColor" stroke-width="1.7"/><circle cx="16" cy="9" r="2.6" stroke="currentColor" stroke-width="1.7"/><path d="M2.8 18.5c.6-3 2.6-4.8 5.2-4.8s4.6 1.8 5.2 4.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M10.8 18.5c.6-3 2.6-4.8 5.2-4.8s4.2 1.6 4.8 3.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+    <span class="tab-label">Комнаты</span><span class="tab-dot"></span>
+  </button>
+  <button class="tab" data-nav="profile">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.4" stroke="currentColor" stroke-width="1.7"/><path d="M4.6 19.4c1-3.8 3.8-6 7.4-6s6.4 2.2 7.4 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+    <span class="tab-label">Профиль</span><span class="tab-dot"></span>
+  </button>
+  <button class="tab" data-nav="shop">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5.5 8h13l1.2 10.4a2 2 0 0 1-2 2.2H6.3a2 2 0 0 1-2-2.2L5.5 8Z" stroke="currentColor" stroke-width="1.7"/><path d="M9 8a3 3 0 0 1 6 0" stroke="currentColor" stroke-width="1.7"/></svg>
+    <span class="tab-label">Магазин</span><span class="tab-dot"></span>
+  </button>
+</nav>
+
+<script>
+(function(){
+  "use strict";
+
+  var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+  var haptic = {
+    tap: function(){ if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); },
+    soft: function(){ if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('soft'); },
+    spin: function(){ if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium'); }
+  };
+
+  function applyTheme(){
+    if (!tg) return;
+    var p = tg.themeParams || {};
+    var root = document.documentElement.style;
+    if (p.bg_color) root.setProperty('--tgbg', p.bg_color);
+    if (p.text_color) root.setProperty('--tgtext', p.text_color);
+    if (p.hint_color) root.setProperty('--tghint', p.hint_color);
+    if (p.button_color) root.setProperty('--tgbutton', p.button_color);
+    if (p.button_text_color) root.setProperty('--tgbuttontext', p.button_text_color);
+    try { tg.setHeaderColor(p.bg_color || '#150c12'); } catch(e){}
+    try { tg.setBackgroundColor(p.bg_color || '#150c12'); } catch(e){}
+  }
+
+  function initTelegram(){
+    if (!tg) return;
+    try {
+      tg.ready();
+      tg.expand();
+      applyTheme();
+      tg.onEvent('themeChanged', applyTheme);
+    } catch (e) { /* running outside a real Telegram client */ }
+  }
+
+  function fillProfile(){
+    var name = 'Гость вечеринки', tag = 'без статуса · за столом впервые', initial = 'Б', photo = null;
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+      var u = tg.initDataUnsafe.user;
+      name = [u.first_name, u.last_name].filter(Boolean).join(' ') || name;
+      tag = u.username ? '@' + u.username : tag;
+      initial = (u.first_name || 'Б').charAt(0).toUpperCase();
+      photo = u.photo_url || null;
+    }
+    document.getElementById('profileName').textContent = name;
+    document.getElementById('profileTag').textContent = tag;
+    var box = document.getElementById('avatarBox');
+    if (photo) {
+      box.innerHTML = '<img src="' + photo + '" alt="">';
+    } else {
+      box.textContent = initial;
+    }
+  }
+
+  function showToast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+  }
+
+  function goTo(name){
+    var views = document.querySelectorAll('.view');
+    for (var i = 0; i < views.length; i++) {
+      views[i].classList.toggle('active', views[i].getAttribute('data-view') === name);
+    }
+    var tabs = document.querySelectorAll('.tab');
+    for (var j = 0; j < tabs.length; j++) {
+      tabs[j].classList.toggle('active', tabs[j].getAttribute('data-nav') === name);
+    }
+    if (name === 'rooms') loadRooms();
+    haptic.tap();
+    window.scrollTo(0, 0);
+  }
+
+  var roomsLoaded = false;
+  function loadRooms(){
+    if (roomsLoaded) return;
+    roomsLoaded = true;
+    setTimeout(function(){
+      document.getElementById('roomsBody').innerHTML =
+        '<div class="empty">' +
+          '<div class="empty-badge"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="9" r="2.6" stroke="#c4a3b6" stroke-width="1.6"/><circle cx="16" cy="9" r="2.6" stroke="#c4a3b6" stroke-width="1.6"/><path d="M2.8 18.5c.6-3 2.6-4.8 5.2-4.8s4.6 1.8 5.2 4.8" stroke="#c4a3b6" stroke-width="1.6" stroke-linecap="round"/><path d="M10.8 18.5c.6-3 2.6-4.8 5.2-4.8s4.2 1.6 4.8 3.8" stroke="#c4a3b6" stroke-width="1.6" stroke-linecap="round"/></svg></div>' +
+          '<h3>Свободных столов пока нет</h3>' +
+          '<p>Стань первым — создай комнату, и бот пригласит следующих игроков сесть за твой стол.</p>' +
+          '<button class="btn-primary" id="createRoomBtn" style="display:inline-flex; padding:14px 22px;">Создать комнату</button>' +
+        '</div>';
+      document.getElementById('createRoomBtn').addEventListener('click', function(){
+        haptic.soft();
+        showToast('Открой бота и нажми «Создать комнату» в меню');
+      });
+    }, 650);
+  }
+
+  document.addEventListener('click', function(e){
+    var el = e.target.closest('[data-nav]');
+    if (el) { goTo(el.getAttribute('data-nav')); }
+  });
+
+  var bottle = document.getElementById('bottle');
+  var spins = 0;
+  bottle.addEventListener('click', function(){
+    spins++;
+    haptic.spin();
+    var extra = 720 + Math.floor(Math.random() * 720);
+    bottle.classList.add('spin');
+    bottle.style.transform = 'rotate(' + (extra * (spins % 2 === 0 ? -1 : 1)) + 'deg)';
+    setTimeout(function(){
+      bottle.classList.remove('spin');
+    }, 1900);
+  });
+
+  initTelegram();
+  fillProfile();
+})();
+</script>
+</body>
+</html>
