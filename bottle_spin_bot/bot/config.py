@@ -1,73 +1,47 @@
 """
-Configuration module for Bottle Spin Bot
-Loads environment variables and provides central config management
+Configuration settings
 """
 
 import os
-from typing import Optional
-from pydantic_settings import BaseSettings
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+env_file = Path(__file__).parent.parent / ".env"
+load_dotenv(env_file)
 
 
-class Settings(BaseSettings):
-    """Main application settings"""
+class Settings:
+    """Application settings"""
 
     # Telegram
-    telegram_bot_token: str
-    telegram_bot_username: str = "bottle_spin_bot"
+    telegram_bot_token: str = os.getenv(
+        "TELEGRAM_BOT_TOKEN", "your-token-here"
+    )
+    telegram_bot_username: str = os.getenv("TELEGRAM_BOT_USERNAME", "bottle_spin_bot")
 
     # Database
-    database_url: str
-    
+    database_url: str = os.getenv(
+        "DATABASE_URL",
+        "postgresql://bottle_user:bottle_pass@localhost:5432/bottle_spin_bot",
+    )
+
     # Redis
-    redis_url: str = "redis://localhost:6379/0"
+    redis_url: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
     # Application
-    debug: bool = False
-    log_level: str = "INFO"
-    environment: str = "development"
-
-    # Game Settings
-    max_players_per_room: int = 8
-    spin_interval_seconds: int = 30
-    decision_timeout_seconds: int = 10
-    min_user_age: int = 18
-
-    # Monetization
-    vip_monthly_price: int = 99  # Telegram Stars
-    vip_quarterly_price: int = 249
-    vip_biannual_price: int = 449
-    initial_coins: int = 100
-    initial_energy: int = 100
-    energy_recovery_rate: int = 1  # per minute
-    max_energy: int = 100
+    environment: str = os.getenv("ENVIRONMENT", "development")
+    debug: bool = os.getenv("DEBUG", "True").lower() == "true"
+    log_level: str = os.getenv("LOG_LEVEL", "INFO")
 
     # Admin
-    admin_user_ids: str = ""  # Comma-separated
-    support_chat_id: Optional[int] = None
+    admin_user_list: list = [int(uid) for uid in os.getenv("ADMIN_USERS", "").split(",") if uid.strip()]
 
-    # API
-    api_host: str = "0.0.0.0"
-    api_port: int = 8000
-    api_prefix: str = "/api/v1"
-
-    # Security
-    secret_key: str = "change-me-in-production"
-    algorithm: str = "HS256"
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
-
-    @property
-    def admin_user_list(self) -> list[int]:
-        """Parse admin user IDs from comma-separated string"""
-        if not self.admin_user_ids:
-            return []
-        return [int(uid.strip()) for uid in self.admin_user_ids.split(",")]
+    # Game settings (can be overridden)
+    MAX_ROOM_SIZE: int = 12
+    SPIN_INTERVAL: int = 30
+    DECISION_TIMEOUT: int = 10
+    INITIAL_ENERGY: int = 100
 
 
-# Load settings
 settings = Settings()
-
-# Export for convenience
-__all__ = ["settings"]
