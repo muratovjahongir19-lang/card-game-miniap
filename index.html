@@ -1,1 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Моя Игра</title>
+    <!-- Подключаем SDK Telegram -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #1c1c1e;
+            color: #ffffff;
+            text-align: center;
+            padding-top: 40px;
+            margin: 0;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: #2ea6ff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="user-greeting">Привет, Игрок!</h1>
+    <p>Очки: <span id="score">0</span></p>
+    <button id="click-btn">Кликни меня!</button>
 
+    <script>
+        // Инициализация Telegram SDK
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand(); // Раскрыть окно на весь экран
+
+        // Получение имени игрока из Telegram
+        if (tg.initDataUnsafe?.user) {
+            document.getElementById('user-greeting').innerText = `Привет, ${tg.initDataUnsafe.user.first_name}!`;
+        }
+
+        // Простая механика кликера
+        let score = 0;
+        document.getElementById('click-btn').addEventListener('click', () => {
+            score++;
+            document.getElementById('score').innerText = score;
+            
+            // Легкая вибрация телефона при клике
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+        });
+    </script>
+</body>
+</html>
